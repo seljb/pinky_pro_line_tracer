@@ -1,0 +1,5 @@
+# Offline workflow verified on Python 3.12; ROS uses system Jazzy packages.
+black==24.10.0
+numpy==2.5.4
+opencv-python==5.0.0.93
+pytest==9.2.0
