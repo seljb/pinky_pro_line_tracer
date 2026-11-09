@@ -1,13 +1,17 @@
+"""Test control behavior with synthetic inputs only."""
+
 import math
 from pinky_line_alignment.control import AlignmentController, Pose, State, wrap
 from pinky_line_alignment.vision import LineEstimate
 
 
 def line(offset=-0.08,heading=0., target_x=0.10,target_y=0.08):
+    """Build a synthetic estimate for controller tests, never real feedback."""
     return LineEstimate(offset,heading,target_x,target_y,0.1,20,0.2,1.0)
 
 
 def test_does_not_start_without_sensors():
+    """Reject alignment start without fresh camera and odometry."""
     c=AlignmentController()
     ok,_=c.start(0.)
     assert not ok and c.state==State.IDLE
@@ -15,6 +19,7 @@ def test_does_not_start_without_sensors():
 
 
 def test_stale_sensor_stops_immediately():
+    """Require zero requested motion after sensor data expires."""
     c=AlignmentController()
     c.update_pose(Pose(0,0,0),0.)
     c.update_line(line(),0.,1)
@@ -26,6 +31,7 @@ def test_stale_sensor_stops_immediately():
 
 
 def test_plan_and_motion_commands_with_explicit_handoff():
+    """Exercise toy motion and require explicit follower-ready handoff."""
     c=AlignmentController()
     p=Pose(0,0,0)
     c.update_pose(p,0.)
@@ -60,6 +66,7 @@ def test_plan_and_motion_commands_with_explicit_handoff():
 
 
 def test_operator_stop():
+    """Require IDLE and zero requested motion after operator stop."""
     c=AlignmentController()
     c.update_pose(Pose(0,0,0),0.)
     c.update_line(line(),0.,1)
@@ -69,6 +76,7 @@ def test_operator_stop():
 
 
 def test_ready_expires_and_cannot_handoff_after_lost_sensors():
+    """Invalidate READY and reject handoff when sensor data expires."""
     c = AlignmentController()
     c.state = State.READY
     c.phase_start = 1.0
@@ -82,6 +90,7 @@ def test_ready_expires_and_cannot_handoff_after_lost_sensors():
 
 
 def test_handoff_checks_current_alignment_not_only_ready_flag():
+    """Reject handoff when current errors violate alignment tolerances."""
     c = AlignmentController()
     c.state = State.READY
     c.phase_start = 1.0
@@ -93,6 +102,7 @@ def test_handoff_checks_current_alignment_not_only_ready_flag():
 
 
 def test_ready_timeout_even_with_live_sensors():
+    """Expire READY even if fresh observations continue to arrive."""
     c = AlignmentController()
     c.state = State.READY
     c.phase_start = 1.0
@@ -103,6 +113,7 @@ def test_ready_timeout_even_with_live_sensors():
 
 
 def test_invalid_odometry_cannot_drive():
+    """Reject non-finite odometry before and during alignment."""
     c = AlignmentController()
     c.update_pose(Pose(float('nan'), 0., 0.), 0.)
     c.update_line(line(), 0., 1)
@@ -116,6 +127,7 @@ def test_invalid_odometry_cannot_drive():
 
 
 def test_invalid_line_estimate_cannot_handoff():
+    """Reject a non-finite line estimate while waiting for handoff."""
     c = AlignmentController()
     c.state = State.READY
     c.phase_start = 1.

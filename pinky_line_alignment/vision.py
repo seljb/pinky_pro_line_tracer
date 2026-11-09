@@ -13,6 +13,7 @@ import numpy as np
 
 @dataclass(frozen=True)
 class Calibration:
+    """Store image-to-ground geometry and its validation metadata."""
     kind: str
     validated: bool
     H: np.ndarray
@@ -25,6 +26,18 @@ class Calibration:
 
     @staticmethod
     def load(path: str | Path) -> 'Calibration':
+        """Load and check the geometry needed by the detector.
+
+        Args:
+            path: UTF-8 calibration JSON path.
+
+        Returns:
+            Calibration metadata; loading alone does not certify real motion.
+
+        Raises:
+            OSError: If the file cannot be read.
+            ValueError: If JSON or checked calibration fields are invalid.
+            KeyError: If a required calibration field is missing."""
         c = json.loads(Path(path).read_text(encoding='utf-8'))
         if c.get('homography_img_to_ground') is None:
             raise ValueError('No ground homography. Calibrate physical camera first.')
@@ -47,6 +60,7 @@ class Calibration:
 
 @dataclass(frozen=True)
 class LineEstimate:
+    """Describe a ground line in metres/radians, not success probability."""
     lateral_m: float
     heading_rad: float
     target_x_m: float
@@ -58,8 +72,10 @@ class LineEstimate:
 
 
 class LineDetector:
+    """Extract one supported dark line using calibrated ground geometry."""
     def __init__(self, calibration: Calibration, threshold: int = 100,
                  row_step: int = 9, min_rows: int = 7, max_width_px: int = 68):
+        """Initialize owned state and explicit runtime dependencies."""
         self.cal = calibration
         self.threshold = int(threshold)
         self.row_step = int(row_step)
@@ -68,6 +84,18 @@ class LineDetector:
         self.last_mask = None
 
     def detect(self, frame: np.ndarray) -> LineEstimate | None:
+        """Estimate line position and tangent from a calibrated BGR image.
+
+        Args:
+            frame: Three-channel image at the calibration resolution.
+
+        Returns:
+            A ground estimate, or None if no supported line can be fitted.
+            quality describes heuristic support, not measured robot accuracy.
+
+        Raises:
+            ValueError: If image dimensions disagree with the calibration.
+            cv2.error: If OpenCV cannot process the supplied image."""
         if frame is None or frame.ndim != 3 or frame.shape[:2] != (self.cal.height, self.cal.width):
             raise ValueError('Frame size differs from calibration; recalibrate at this mode')
         img = cv2.undistort(frame, self.cal.K, self.cal.D) if self.cal.K is not None else frame
@@ -99,10 +127,12 @@ class LineDetector:
         if best is None:
             return None
         pixels = np.asarray(best[1], dtype=np.float32).reshape(-1, 1, 2)
+        # 픽셀 오차를 직접 제어하지 않고 실측 바닥 좌표(m)로 바꾼다.
         ground = cv2.perspectiveTransform(pixels, self.cal.H).reshape(-1, 2).astype(float)
         if not np.isfinite(ground).all():
             return None
         origin = ground.mean(axis=0)
+        # SVD의 주축은 현재 관측된 선의 직선 접선 근사다.
         _, _, vt = np.linalg.svd(ground - origin)
         tangent = vt[0].copy()
         if tangent[0] < 0:

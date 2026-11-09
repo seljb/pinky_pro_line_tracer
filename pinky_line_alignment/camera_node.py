@@ -10,7 +10,9 @@ from cv_bridge import CvBridge
 
 
 class CameraNode(Node):
+    """Own a Pinky or USB camera and publish BGR ROS images."""
     def __init__(self):
+        """Initialize owned state and explicit runtime dependencies."""
         super().__init__('pinky_camera_bridge')
         self.declare_parameter('source', 'pinky')
         self.declare_parameter('device_index', 0)
@@ -38,6 +40,7 @@ class CameraNode(Node):
         self.create_timer(1.0/fps, self.tick)
 
     def tick(self):
+        """Publish one available camera frame without requesting motion."""
         if self.source == 'pinky':
             frame = self.camera.get_frame()
         else:
@@ -56,6 +59,7 @@ class CameraNode(Node):
         self.pub.publish(msg)
 
     def shutdown(self):
+        """Close the selected camera backend."""
         if self.source == 'pinky':
             self.camera.close()
         else:
@@ -63,6 +67,7 @@ class CameraNode(Node):
 
 
 def main():
+    """Run the camera bridge and release the camera on normal shutdown."""
     rclpy.init()
     node = None
     try:

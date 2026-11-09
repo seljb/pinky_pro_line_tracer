@@ -18,7 +18,9 @@ from .control import AlignmentController, Pose, State
 
 
 class AlignNode(Node):
+    """Adapt ROS observations and services to the alignment controller."""
     def __init__(self):
+        """Initialize owned state and explicit runtime dependencies."""
         super().__init__('pinky_line_alignment')
         self.declare_parameter('calibration_file', '')
         self.declare_parameter('camera_topic', '/line_align/camera/image_raw')
@@ -37,6 +39,7 @@ class AlignNode(Node):
         if output_topic.rstrip('/') in ('/cmd_vel', 'cmd_vel'):
             raise RuntimeError('Direct /cmd_vel output is forbidden; use a safety-rated external mux')
         limit = float(self.get_parameter('max_calibration_rmse_m').value)
+        # 구동 요청과 실측 보정 검증은 별개 조건이며 둘 다 만족해야 한다.
         self.drive_enabled = (self.drive_requested and self.cal.kind == 'real'
                               and self.cal.validated and self.cal.rmse is not None
                               and self.cal.rmse <= limit)
@@ -71,6 +74,13 @@ class AlignNode(Node):
         # Guard against delayed ROS transport when timestamps are present.
         # A zero stamp is unsupported for transport-age validation: receipt-age
         # checks in the controller remain active, but true capture time is unknown.
+        """Check ROS source time against the configured transport-age limit.
+
+        Args:
+            stamp: ROS sec/nanosec timestamp using the node clock domain.
+
+        Returns:
+            Whether the stamp is usable. Zero is accepted only for monitoring."""
         if stamp.sec == 0 and stamp.nanosec == 0:
             # No known source time: monitoring is possible, but driving is denied.
             return not self.drive_enabled
@@ -80,6 +90,8 @@ class AlignNode(Node):
         return 0.0 <= age_s <= max_age
 
     def on_camera(self, msg):
+        """Convert a ROS image and invalidate the line on processing failure."""
+        # 수신 경과 시간은 단조 시계, ROS 헤더 지연은 ROS 시계로 따로 검사한다.
         now = time.monotonic()
         if not self.source_stamp_fresh(msg.header.stamp):
             self.seq += 1
@@ -106,6 +118,7 @@ class AlignNode(Node):
             self.pub_debug.publish(debug)
 
     def on_odom(self, msg):
+        """Convert fresh ROS odometry to metres and planar yaw in radians."""
         if not self.source_stamp_fresh(msg.header.stamp):
             self.get_logger().warning('Dropped stale/future-stamped odometry')
             return
@@ -115,10 +128,12 @@ class AlignNode(Node):
         self.controller.update_pose(pose, time.monotonic())
 
     def on_follower(self, msg):
+        """Record follower readiness and its monotonic receipt time."""
         self.follower_ready = bool(msg.data)
         self.follower_ready_at = time.monotonic()
 
     def on_start(self, request, response):
+        """Reject drive-disabled requests before starting the controller."""
         now = time.monotonic()
         if not self.drive_enabled:
             response.success = False
@@ -129,21 +144,25 @@ class AlignNode(Node):
         return response
 
     def on_stop(self, request, response):
+        """Handle an operator stop and publish zero velocity immediately."""
         self.controller.stop(time.monotonic())
         self.publish_zero()
         response.success, response.message = True, 'alignment stopped, zero commanded'
         return response
 
     def on_handoff(self, request, response):
+        """Validate fresh follower readiness; leave mux switching external."""
         now = time.monotonic()
         ready = self.follower_ready and 0 <= now-self.follower_ready_at < 0.5
         response.success, response.message = self.controller.handoff_ack(ready, now)
         return response
 
     def publish_zero(self):
+        """Publish zero Twist on this node's configured output topic."""
         self.pub_cmd.publish(Twist())
 
     def on_timer(self):
+        """Publish bounded requests and JSON diagnostics every 0.1 seconds."""
         now = time.monotonic()
         cmd = self.controller.tick(now)
         msg = Twist()
@@ -164,12 +183,14 @@ class AlignNode(Node):
         self.pub_state.publish(String(data=json.dumps(status, ensure_ascii=False)))
 
     def shutdown(self):
+        """Stop controller state and publish three zero requests."""
         self.controller.stop(time.monotonic(), 'shutdown')
         for _ in range(3):
             self.publish_zero()
 
 
 def main():
+    """Run the ROS alignment adapter and request zero on shutdown."""
     rclpy.init()
     node = None
     try:

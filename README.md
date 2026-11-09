@@ -1,6 +1,27 @@
 # Pinky Pro — 카메라 기반 검은 선 합류·정렬 (ROS 2 Jazzy)
 
+**먼저 오프라인 검증을 하고, 실물에서는 모터 OFF 상태로 센서부터 확인하세요.** 파일별 역할은 [사용설명서 전체 목차](docs/manuals/README.md), 다음 현장 작업은 [11월 11일 체크리스트](docs/NEXT_DAY_CHECKLIST_KO.md)를 따르세요.
+
+## 목차
+
+- [파일별 사용설명서](docs/manuals/README.md)
+- [내일 할 일](docs/NEXT_DAY_CHECKLIST_KO.md)
+- [Python 규칙 적용 현황](docs/PYTHON_STYLE_KO.md)
+- [이번 범위](#guide-1)
+- [파일 구조](#guide-2)
+- [1. 로봇 없이 먼저 테스트 (Ubuntu / Python 3.12)](#guide-3)
+- [2. Pinky 실물 정보 확인 (아직 실제 장비에서 실행하지 않음)](#guide-4)
+- [3. 실제 카메라 보정 절차 (필수)](#guide-5)
+- [4. ROS 2 빌드](#guide-6)
+- [5. 카메라 브리지 + 모니터링 실행 (모터 **OFF**, 권장 시작)](#guide-7)
+- [6. 실제 바퀴 구동 시험 (현장 안전 확인 후에만)](#guide-8)
+- [7. 다음 실측 및 한계](#guide-9)
+- [8. 참고 GitHub / 라이선스](#guide-10)
+- [9. 설치 전에 확인할 다음 실험](#guide-11)
+
 > **현재 단계:** 소스코드 + 오프라인 테스트. Pinky Pro 실물 검증 **미완료**. 배포용 안전 제어기가 아니다.
+
+<a id="guide-1"></a>
 
 ## 이번 범위
 
@@ -11,6 +32,8 @@
 5. 타 라인트레이싱 담당자가 명시적으로 준비됐음을 알리고 인계 확인. **속도 명령의 실제 소유권 전환은 외부 mux가 해야 함.**
 
 **범위 밖:** FMS, VDA 5050, 선 전체 추종, 충돌 방지/비상정지, 장애물 처리, 선 교차점 선택, 전역 경로 최적화, 검증되지 않은 현물 정격.
+
+<a id="guide-2"></a>
 
 ## 파일 구조
 
@@ -28,10 +51,12 @@ pinky_line_alignment/
 └── docs/GITHUB_REFERENCES.md # 어떤 오픈소스를 왜 참고했는지
 ```
 
+<a id="guide-3"></a>
+
 ## 1. 로봇 없이 먼저 테스트 (Ubuntu / Python 3.12)
 
 ```bash
-cd pinky_line_alignment
+cd /PATH/TO/pinky_pro_line_tracer
 python3 -m venv .venv
 source .venv/bin/activate
 pip install numpy opencv-python pytest
@@ -41,6 +66,8 @@ python -m pinky_line_alignment.closed_loop_sim
 ```
 
 오프라인 이미지는 **가상의 평면 카메라**를 가정하며 실물 정확도 증거가 아니다. 실제로는 `ros2` Python 환경에 `rclpy`, `cv_bridge` 등이 설치되어야 한다. 시스템 ROS 2를 사용할 때 별도의 일반 pip venv를 섞지 않는 것이 안전하다.
+
+<a id="guide-4"></a>
 
 ## 2. Pinky 실물 정보 확인 (아직 실제 장비에서 실행하지 않음)
 
@@ -58,6 +85,8 @@ python3 -c 'from pinkylib import Camera; print("pinkylib imported")'
 - 공개 bringup 드라이버는 `Twist /cmd_vel`을 받고 `Odometry /odom`을 내보내는 구조임. **보유한 로봇에서 실제 경로·토픽·QoS를 확인**해야 함.
 - [Pinky 교육 카메라 자료](https://github.com/pinklab-art/pinky_study/wiki/2.2-Pinky-Pro(part2))에는 `Camera().start()`, `get_frame()`, `close()` 사용 예제가 있음. `pinky` backend가 설치되지 않았다면 USB 대체 입력이 가능함.
 - IR 3개는 현재 코드에서 **활성화하지 않았음**. 바닥을 실제로 검출하는지, 극성·물리 순서·시점이 맞는지 실측한 뒤 검증 보조에만 추가할 것.
+
+<a id="guide-5"></a>
 
 ## 3. 실제 카메라 보정 절차 (필수)
 
@@ -92,9 +121,11 @@ python -m pinky_line_alignment.calibration validate \
 
 `0.015 m`는 **개발 중 임시 검증 한계**이며 실제 선 폭·성공 기준으로 조정해야 한다. 내부 RMSE만 낮다고 안전한 주행이 보증되지는 않는다. 사용한 체커보드, 포즈, 조명, 카메라 고정 상태를 별도 기록할 것.
 
+<a id="guide-6"></a>
+
 ## 4. ROS 2 빌드
 
-ROS 2 Jazzy 환경에서 `pinky_line_alignment` 폴더를 workspace `src`에 복사한다.
+ROS 2 Jazzy 환경에서 **setup.py와 package.xml을 포함하는 저장소 루트**를 workspace `src` 아래에 둡니다. 내부 Python 폴더만 복사하지 마세요. 이미 `~/pinky_ws/src/pinky_pro_line_tracer`에 clone했다면 추가 복사는 필요 없습니다.
 
 ```bash
 sudo apt update
@@ -104,11 +135,13 @@ sudo apt install python3-opencv python3-numpy python3-pytest \
   ros-jazzy-std-srvs python3-colcon-common-extensions
 source /opt/ros/jazzy/setup.bash
 mkdir -p ~/pinky_ws/src
-# ./pinky_line_alignment 폴더를 ~/pinky_ws/src/ 아래에 복사
+# 저장소 전체를 ~/pinky_ws/src/pinky_pro_line_tracer 아래에 준비
 cd ~/pinky_ws
 colcon build --packages-select pinky_line_alignment --symlink-install
 source install/setup.bash
 ```
+
+<a id="guide-7"></a>
 
 ## 5. 카메라 브리지 + 모니터링 실행 (모터 **OFF**, 권장 시작)
 
@@ -139,6 +172,8 @@ ros2 topic hz /line_align/camera/image_raw
 
 카메라 해상도와 보정 JSON 크기가 다르면 오류를 출력하고 **정렬 시작이 되지 않음**.
 
+<a id="guide-8"></a>
+
 ## 6. 실제 바퀴 구동 시험 (현장 안전 확인 후에만)
 
 **먼저:** 높이·렌즈·바닥 보정 측정, 모터 방향 및 odom 확인, 장애물이 없는 시험장, 차체를 들어 올린 시험, 독립 하드웨어 비상정지, 실제 `/cmd_vel` 단일 제어자 확인. 다른 추종기/Nav2/teleop와 모터 제어를 동시에 하지 않음. 실제 로봇이 임의로 회전할 수 있으므로 안전 공간 확보.
@@ -165,6 +200,8 @@ ros2 service call /line_align/handoff_ack std_srvs/srv/Trigger '{}'
 
 실제 인계 시 mux를 전환하는 구현은 별도 필요하다. 서비스 호출 자체가 `/cmd_vel` 전환이나 로봇 안전성을 보장하지 않는다.
 
+<a id="guide-9"></a>
+
 ## 7. 다음 실측 및 한계
 
 - 시험 전: **검은 테이프 폭**, 반사율, 카메라/IR 실제 유효 거리와 장착 방향, 모터/odom 지연, 시작 범위, 스캔 경계, 경로의 곡률, 목표 허용오차를 측정한다.
@@ -177,9 +214,13 @@ ros2 service call /line_align/handoff_ack std_srvs/srv/Trigger '{}'
 - ROS 메시지 헤더가 있으면 전송 지연을 검사하지만 **카메라 촬영 시각이 아니라 get_frame 이후 찍은 시각일 수 있음**. 카메라 실제 촬영 지연은 별도 측정해야 한다.
 - 카메라 소비 파이프라인과 하드웨어 모터 제어를 PC에서 재현하지 않았으므로, 여기서 테스트 성공은 **알고리즘 단위 테스트**에만 해당한다.
 
+<a id="guide-10"></a>
+
 ## 8. 참고 GitHub / 라이선스
 
 [docs/GITHUB_REFERENCES.md](docs/GITHUB_REFERENCES.md) 참조. 이번 소스는 참고 코드의 복제가 아니라 새로 작성한 구현이다. 외부 저장소의 소스 파일을 통째로 포함하지 않았다.
+
+<a id="guide-11"></a>
 
 ## 9. 설치 전에 확인할 다음 실험
 

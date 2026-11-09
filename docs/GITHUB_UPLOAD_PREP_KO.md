@@ -1,10 +1,18 @@
 # 개인 GitHub 업로드 준비
 
+**이 문서는 과거 업로드 준비 기록입니다. 현재 대상은 `seljb/pinky_pro_line_tracer`의 `feat/line-alignment`이며 main 직접 push 대신 PR을 사용합니다.**
+
+## 목차
+
+- [나중에 새 저장소를 만든 뒤](#section-1)
+
 - 연결 계정으로 확인된 GitHub 사용자: `seljb` (2026-11-09 기준)
 - **제안 저장소 이름:** `pinky-pro-line-alignment`
 - **소유자:** 개인 계정 `seljb`. `sesac` 조직 계정·기존 `aiot_repo_2` 또는 `local_project`에 업로드하지 않음.
 - **현 상태:** 저장소 미생성·commit 미업로드. GitHub 새 저장소를 생성하는 액션이 현재 연결에서 지원되지 않아 보류.
 - **공개 범위:** 별도 의사표시가 없다면 `Private` 권장. 라이선스/공개는 사용자 결정에 따름.
+
+<a id="section-1"></a>
 
 ## 나중에 새 저장소를 만든 뒤
 

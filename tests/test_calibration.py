@@ -1,9 +1,12 @@
+"""Test calibration behavior with synthetic inputs only."""
+
 import numpy as np
 import cv2
 from pinky_line_alignment.calibration import floor, validate
 
 
 def test_homography_holdout():
+    """Check synthetic homography arithmetic and validation metadata."""
     H = np.array([[0,-0.001,0.48],[-0.001,0,0.32],[0,0,1]],float)
     points = np.array([[80,60],[580,60],[80,450],[580,450],[240,220],[450,350]],np.float32)
     ground = cv2.perspectiveTransform(points.reshape(-1,1,2), H).reshape(-1,2)

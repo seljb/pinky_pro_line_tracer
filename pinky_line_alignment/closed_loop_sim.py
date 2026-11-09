@@ -17,6 +17,7 @@ from .control import AlignmentController, Pose, State, wrap
 
 @dataclass(frozen=True)
 class SimResult:
+    """Report idealized simulation errors, duration, and final state."""
     state: str
     reason: str
     duration_s: float
@@ -47,6 +48,19 @@ def render_tape(cal: Calibration, pose: Pose, tape_y_world: float = 0.0) -> np.n
 
 def simulate(start_y: float = -0.08, start_yaw: float = 0.,
              step_s: float = 0.04, max_s: float = 55.) -> SimResult:
+    """Run a deterministic synthetic detector/controller feedback loop.
+
+    Args:
+        start_y: Initial lateral position in metres.
+        start_yaw: Initial heading in radians.
+        step_s: Ideal integration interval in seconds; must be positive.
+        max_s: Simulation budget in seconds; must allow at least one step.
+
+    Returns:
+        Final simulated state and errors; not evidence of physical performance.
+
+    Raises:
+        ValueError: If calibration is not the unvalidated synthetic model."""
     cal_path = Path(__file__).resolve().parents[1] / 'config' / 'synthetic_calibration.json'
     cal = Calibration.load(cal_path)
     if cal.kind != 'synthetic' or cal.validated:
@@ -73,6 +87,7 @@ def simulate(start_y: float = -0.08, start_yaw: float = 0.,
 
 
 def main() -> None:
+    """Print both synthetic outcomes; use pytest to enforce success."""
     for y in (-0.08, 0.08):
         result = simulate(start_y=y)
         print(f'OFFLINE SYNTHETIC initial lateral {y:+.3f}m -> {result}')

@@ -7,6 +7,14 @@ from .vision import Calibration, LineDetector
 
 
 def synthetic_image(offset_m: float=0.09, slope: float=0.18):
+    """Render a synthetic dark line without opening a camera.
+
+    Args:
+        offset_m: Lateral offset in the synthetic ground model, in metres.
+        slope: Dimensionless line slope in ground coordinates.
+
+    Returns:
+        A 480-by-640 BGR image for the synthetic calibration only."""
     img=np.full((480,640,3),255,np.uint8)
     points=[]
     for x in np.linspace(0.035,0.47,120):
@@ -19,6 +27,7 @@ def synthetic_image(offset_m: float=0.09, slope: float=0.18):
 
 
 def main():
+    """Save a synthetic detection preview; never connect to a robot."""
     parser=argparse.ArgumentParser()
     parser.add_argument('--output',default='pinky_alignment_preview.png')
     parser.add_argument('--offset-m',type=float,default=0.09)

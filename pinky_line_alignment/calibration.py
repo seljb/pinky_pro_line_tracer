@@ -12,6 +12,20 @@ import numpy as np
 
 
 def intrinsic(images: list[str], nx: int, ny: int, square_m: float) -> dict:
+    """Estimate camera intrinsics from diverse chessboard images.
+
+    Args:
+        images: Image paths; unreadable images are skipped.
+        nx: Internal chessboard corners across the width.
+        ny: Internal chessboard corners across the height.
+        square_m: Measured square side length in metres.
+
+    Returns:
+        Intrinsics and reprojection error in pixels, not ground error.
+
+    Raises:
+        ValueError: If dimensions differ or fewer than eight boards are usable.
+        cv2.error: If OpenCV calibration fails."""
     obj = np.zeros((nx*ny, 3), np.float32)
     obj[:,:2] = np.mgrid[0:nx,0:ny].T.reshape(-1,2) * square_m
     op, ip = [], []
@@ -40,6 +54,18 @@ def intrinsic(images: list[str], nx: int, ny: int, square_m: float) -> dict:
 
 def floor(pairs: dict, intr: dict | None = None) -> dict:
     # At least 4 non-collinear measured correspondences. Better use 6+ points.
+    """Fit a ground homography without marking it independently valid.
+
+    Args:
+        pairs: Undistorted pixels and matching ground x-forward/y-left metres.
+        intr: Camera intrinsics, or None when lens correction is not supplied.
+
+    Returns:
+        An unvalidated calibration dictionary and training fit error.
+
+    Raises:
+        ValueError: If correspondences are insufficient or degenerate.
+        KeyError: If a required measurement field is missing."""
     img = np.asarray(pairs['pixel_points'],np.float32)
     ground = np.asarray(pairs['ground_xy_m'],np.float32)
     if len(img)<4 or img.shape != ground.shape or img.shape[1] != 2:
@@ -65,6 +91,19 @@ def floor(pairs: dict, intr: dict | None = None) -> dict:
 
 
 def validate(data: dict, holdout: dict, rmse_max: float, mark: bool) -> dict:
+    """Record holdout error and conditionally mark a real calibration.
+
+    Args:
+        data: Calibration dictionary; updated in place and returned.
+        holdout: At least five independent pixel/ground measurement pairs.
+        rmse_max: Maximum accepted ground RMSE in metres.
+        mark: Whether the caller requests validation after physical measurement.
+
+    Returns:
+        The updated data. This function cannot establish point independence.
+
+    Raises:
+        ValueError: If the checked point count or shapes are invalid."""
     p=np.asarray(holdout['pixel_points'],np.float32)
     g=np.asarray(holdout['ground_xy_m'],np.float32)
     if len(p)<5 or p.shape!=g.shape or p.shape[1]!=2:
@@ -76,11 +115,13 @@ def validate(data: dict, holdout: dict, rmse_max: float, mark: bool) -> dict:
     data['ground_rmse_m']=rmse
     data['ground_max_error_m']=float(np.max(errors))
     data['holdout_count']=len(p)
+    # 점의 독립성은 자동 판별할 수 없으므로 실측 절차에서 보장해야 한다.
     data['validated']=bool(mark and rmse<=rmse_max and data.get('calibration_type')=='real')
     return data
 
 
 def main():
+    """Parse calibration subcommands and save the resulting JSON."""
     parser=argparse.ArgumentParser(description=__doc__)
     subs=parser.add_subparsers(dest='command',required=True)
     a=subs.add_parser('intrinsic')

@@ -1,5 +1,12 @@
 # GitHub·공식 자료의 사용 기록 (2026-11-09)
 
+**외부 자료의 참고 목적과 사용 범위를 정리한 기록입니다. 라이선스 확인 없는 코드 복사는 하지 않습니다.**
+
+## 목차
+
+- [적용한 것](#section-1)
+- [향후 실제 기록 필요](#section-2)
+
 아래는 **열람·설계 참고** 기록이다. GitHub 계정 로그인, fork, clone, push, 실물 실행은 하지 않았음. 웹 공개 GitHub를 읽었다는 것과 사용자의 GitHub 저장소를 수정했다는 것은 다르다.
 
 | 자료 | 실제 참고한 내용(어떻게) | 이번 프로젝트에서 선택한 이유 | 복제·실행 여부 |
@@ -13,12 +20,16 @@
 | [OpenCV Camera Calibration](https://docs.opencv.org/4.x/dc/dbb/tutorial_py_calibration.html) | intrinsic 보정과 왜곡 계수 | 픽셀 수만으로 실제 바닥 좌표를 추정하지 않기 위해 | API 활용 |
 | [OpenCV Homography](https://docs.opencv.org/4.x/d9/dab/tutorial_homography.html) | 영상·바닥 대응 변환 | 거리·방향을 실제 미터/라디안 기준으로 비교 | API 활용 |
 
+<a id="section-1"></a>
+
 ## 적용한 것
 
 - **공식 장비 인터페이스와 카메라 API**를 우선해 자체 `camera_node.py`, `alignment_node.py`를 작성.
 - 선 인식에서 기존 ROS2 라인트레이서의 **단일 중심점**보다 다중 중심점+바닥 좌표 변환+접선 추정 선택.
 - 노션의 초기 권장사항에 맞춰 **회전–이동–회전**의 폐루프 정렬을 먼저 구현. Pure Pursuit는 시간 병목이 실측으로 확인된 경우에만 추후 채택 검토.
 - 외부 공개 코드를 붙여넣지 않았으며, 프로그램을 GitHub에 실제 업로드하지 않았음.
+
+<a id="section-2"></a>
 
 ## 향후 실제 기록 필요
 
