@@ -1,0 +1,9 @@
+{
+  "threshold": 100,
+  "roi": [0.0, 0.25, 1.0, 1.0],
+  "blur_size": 3,
+  "open_size": 0,
+  "close_size": 0,
+  "sample_count": 9,
+  "min_support": 5
+}
