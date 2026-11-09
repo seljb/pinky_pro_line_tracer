@@ -1,0 +1,38 @@
+name: Offline validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - 'feat/**'
+      - 'fix/**'
+
+permissions:
+  contents: read
+
+jobs:
+  offline:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install offline dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Check formatting
+        run: python -m black --check .
+      - name: Run offline tests and synthetic checks
+        run: bash scripts/verify_offline.sh
+      - name: Validate synthetic command flow
+        run: python -m pinky_line_alignment.validation_run --output-dir "$RUNNER_TEMP/pinky-command-validation"
+      - name: Check installed console entry points
+        run: |
+          python -m pip install --no-deps --no-build-isolation .
+          cd "$RUNNER_TEMP"
+          video_replay --help
+          validation_run --help
+          closed_loop_sim
