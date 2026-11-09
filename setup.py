@@ -30,6 +30,8 @@ setup(
             "calibrate = pinky_line_alignment.calibration:main",
             "offline_demo = pinky_line_alignment.offline_demo:main",
             "closed_loop_sim = pinky_line_alignment.closed_loop_sim:main",
+            "video_replay = pinky_line_alignment.video_replay:main",
+            "validation_run = pinky_line_alignment.validation_run:main",
         ]
     },
 )

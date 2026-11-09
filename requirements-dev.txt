@@ -3,3 +3,6 @@ black==24.10.0
 numpy==2.5.4
 opencv-python==5.0.0.93
 pytest==9.2.0
+# Packaging smoke tests use these tools without build-isolation downloads.
+setuptools==75.8.0
+wheel==0.45.1
