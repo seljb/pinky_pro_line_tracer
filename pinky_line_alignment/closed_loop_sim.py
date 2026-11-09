@@ -10,13 +10,13 @@ physical validation.
 
 from dataclasses import dataclass
 import math
-from pathlib import Path
 
 import cv2
 import numpy as np
 
-from .vision import Calibration, LineDetector
-from .control import AlignmentController, Pose, State, wrap
+from pinky_line_alignment.resource_paths import calibration_file
+from pinky_line_alignment.vision import Calibration, LineDetector
+from pinky_line_alignment.control import AlignmentController, Pose, State, wrap
 
 
 @dataclass(frozen=True)
@@ -83,11 +83,18 @@ def simulate(
 
     Raises:
         ValueError: If calibration is not the unvalidated synthetic model."""
-    cal_path = (
-        Path(__file__).resolve().parents[1]
-        / "config"
-        / "synthetic_calibration.json"
-    )
+    if (
+        not math.isfinite(step_s)
+        or not math.isfinite(max_s)
+        or step_s <= 0
+        or max_s < step_s
+        or not math.isfinite(start_y)
+        or not math.isfinite(start_yaw)
+    ):
+        raise ValueError(
+            "Simulation inputs must be finite with a positive budget"
+        )
+    cal_path = calibration_file("synthetic_calibration.json")
     cal = Calibration.load(cal_path)
     if cal.kind != "synthetic" or cal.validated:
         raise ValueError("Only use a known unvalidated synthetic camera model")
