@@ -54,10 +54,9 @@ class Command:
 class AlignmentController:
     """Own alignment state and compute bounded velocity requests."""
 
-    def __init__(self):
-        # Conservative starting *software limits*, not Pinky-verified safe
-        # speeds.
-        """Initialize owned state and explicit runtime dependencies."""
+    def __init__(self) -> None:
+        """Initialize state and unverified starting software limits."""
+        # 속도와 허용오차는 실물에서 검증된 안전 기준이 아니다.
         self.v_max = 0.05
         self.w_max = 0.35
         self.heading_tol = math.radians(6)
@@ -86,6 +85,7 @@ class AlignmentController:
         self.target_yaw = 0.0
         self.phase_start = 0.0
         self.started = 0.0
+        self.last_tick_s: float | None = None
 
     def update_pose(self, pose: Pose, now: float) -> None:
         """Accept a finite pose and its local receipt time.
@@ -95,7 +95,9 @@ class AlignmentController:
             now: Receipt time from the same monotonic clock as tick().
 
         Invalid numeric values invalidate the stored pose instead of driving."""
-        if not all(math.isfinite(v) for v in (pose.x, pose.y, pose.yaw, now)):
+        if now < 0 or not all(
+            math.isfinite(v) for v in (pose.x, pose.y, pose.yaw, now)
+        ):
             self.pose = None
             self.pose_time = -1e9
             return
@@ -113,6 +115,17 @@ class AlignmentController:
             seq: Camera frame sequence; repeated frames do not add evidence.
 
         Non-finite estimate fields are treated as a missing line."""
+        if not math.isfinite(now) or now < 0:
+            self.line = None
+            self.line_time = -1e9
+            return
+        # 중복 프레임을 다시 받아도 관측 유효시간을 연장하지 않는다.
+        if type(seq) is not int or seq < 0:
+            self.line = None
+            self.line_time = -1e9
+            return
+        if seq <= self.line_seq:
+            return
         if line is not None and not all(
             math.isfinite(v)
             for v in (
@@ -139,7 +152,9 @@ class AlignmentController:
             False for absent observations or times outside the receipt window.
         """
         return (
-            self.pose is not None
+            math.isfinite(now)
+            and now >= 0
+            and self.pose is not None
             and self.line is not None
             and now - self.pose_time <= self.max_odom_age_s
             and now - self.line_time <= self.max_vision_age_s
@@ -168,12 +183,14 @@ class AlignmentController:
         self.replans = self.good_frames = self.verified_frames = 0
         self.count_seq = -1
         self.started = now
+        self.last_tick_s = now
         self._transition(State.OBSERVE, now)
         return True, "Alignment started; check space and stop switch"
 
     def stop(self, now: float, reason: str = "operator stop") -> None:
         """Return to IDLE; the ROS adapter must publish the zero command."""
-        self._transition(State.IDLE, now, reason)
+        safe_now = now if math.isfinite(now) and now >= 0 else self.phase_start
+        self._transition(State.IDLE, safe_now, reason)
 
     def alignment_valid(self, now: float) -> bool:
         """Return whether fresh lateral and heading errors meet tolerances."""
@@ -188,13 +205,11 @@ class AlignmentController:
         """Accept handoff only while alignment and follower readiness hold.
 
         Args:
-            follower_ready: Fresh readiness already checked by the
-        adapter.
+            follower_ready: Fresh readiness already checked by the adapter.
             now: Current monotonic time in seconds.
 
         Returns:
-            A success flag and reason. Acceptance does not switch
-        an external mux.
+            A success flag and reason; no physical mux ownership is changed.
         """
         if self.state != State.READY or not follower_ready:
             return False, "Must be READY and follower must explicitly be ready"
@@ -215,7 +230,9 @@ class AlignmentController:
 
     def _set_plan(self, now: float) -> None:
         """Freeze a robot-relative camera target in the odometry frame."""
-        assert self.pose is not None and self.line is not None
+        if not self.fresh(now) or self.pose is None or self.line is None:
+            self._transition(State.FAILED, now, "plan requires fresh sensors")
+            return
         c, s = math.cos(self.pose.yaw), math.sin(self.pose.yaw)
         # 한 번의 시도에서는 목표를 odom 좌표에 고정해 관측 흔들림과 분리한다.
         self.target_x = (
@@ -233,15 +250,21 @@ class AlignmentController:
         """Compute one bounded velocity request from the current state.
 
         Args:
-            now: Current monotonic time in seconds, shared with sensor
-        updates.
+            now: Monotonic time in seconds, shared with sensor updates.
 
         Returns:
-            Zero velocity in inactive, expired, or failed states.
-        The caller owns
-            publishing and the external mux owns physical
-        command selection.
+            Zero velocity in inactive, expired, or failed states. The caller
+            publishes requests; an external mux selects physical ownership.
         """
+        if (
+            not math.isfinite(now)
+            or now < 0
+            or (self.last_tick_s is not None and now < self.last_tick_s)
+        ):
+            self.state = State.FAILED
+            self.reason = "invalid or backward control clock"
+            return Command()
+        self.last_tick_s = now
         if self.state == State.READY:
             # Crucial: READY must not remain latched after losing the line or
             # odom.
@@ -264,7 +287,9 @@ class AlignmentController:
         if now - self.phase_start > self.max_phase_s:
             self._transition(State.FAILED, now, "phase timeout")
             return Command()
-        assert self.pose is not None and self.line is not None
+        if self.pose is None or self.line is None:
+            self._transition(State.FAILED, now, "missing controller inputs")
+            return Command()
         if self.state == State.OBSERVE:
             # 같은 카메라 프레임을 여러 tick에서 중복 집계하지 않는다.
             if self.line_seq != self.count_seq:
