@@ -21,3 +21,11 @@ pinky_alignment_preview.png
 *.bag
 *.db3
 *.mcap
+
+# Offline reports and private camera recordings
+artifacts/
+*.avi
+*.mp4
+*.mov
+*.mkv
+*.webm
