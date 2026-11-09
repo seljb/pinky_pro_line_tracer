@@ -22,13 +22,13 @@
 ```bash
 mkdir -p ~/pinky_ws/src
 cd ~/pinky_ws/src
-git clone --branch feat/line-alignment https://github.com/seljb/pinky_pro_line_tracer.git
+git clone --branch feat/video-validation https://github.com/seljb/pinky_pro_line_tracer.git
 cd pinky_pro_line_tracer
 git branch --show-current
 git log -1 --oneline
 ```
 
-**완료 기준:** 브랜치가 `feat/line-alignment`이고 최신 문서가 보입니다. `main`은 직접 push하지 않습니다.
+**완료 기준:** 브랜치가 `feat/video-validation`이고 최신 문서가 보입니다. `main`은 직접 push하지 않습니다.
 
 ## 오프라인 테스트
 
@@ -47,7 +47,9 @@ deactivate
 
 `venv` 생성이 실패하면 Ubuntu의 `python3-venv` 설치 여부를 확인합니다. 패키지 설치 실패를 무시하고 다음 단계로 넘어가지 않습니다.
 
-**완료 기준:** 기존 16개 시험 통과, 합성 좌·우 8cm 조건에서 READY입니다. 합성 성공은 실제 주행 성공이 아닙니다. formatter는 동작 시험을 대신하지 않습니다.
+**완료 기준:** 2026-11-10 새 브랜치 기준 189개 시험 통과, 합성 좌·우 8cm 조건에서 READY입니다. 합성 성공은 실제 주행 성공이 아닙니다. formatter는 동작 시험을 대신하지 않습니다.
+
+새 영상 도구 사용법과 합성 검증은 [영상 검증 안내](VIDEO_VALIDATION_KO.md)를 함께 확인합니다. 새 브랜치는 기존 정렬 기능을 포함하면서 재생·명령 선택 검증을 추가합니다.
 
 ## ROS 빌드
 
