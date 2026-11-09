@@ -1,0 +1,59 @@
+{
+  "image_width": 640,
+  "image_height": 480,
+  "pixel_points": [
+    [
+      100,
+      100
+    ],
+    [
+      540,
+      100
+    ],
+    [
+      540,
+      430
+    ],
+    [
+      100,
+      430
+    ]
+  ],
+  "ground_xy_m": [
+    [
+      0.4,
+      0.2
+    ],
+    [
+      0.4,
+      -0.2
+    ],
+    [
+      0.05,
+      -0.2
+    ],
+    [
+      0.05,
+      0.2
+    ]
+  ],
+  "floor_roi_pixels": [
+    [
+      30,
+      30
+    ],
+    [
+      610,
+      30
+    ],
+    [
+      610,
+      455
+    ],
+    [
+      30,
+      455
+    ]
+  ],
+  "notes": "FICTIONAL POINTS FOR FORMAT ONLY. Replace with measured points on UNDISTORTED camera image."
+}

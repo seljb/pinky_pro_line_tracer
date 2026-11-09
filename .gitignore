@@ -1,0 +1,23 @@
+# Python / ROS2
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+build/
+install/
+log/
+
+# Local measurements: keep private physical camera images out of Git by default
+calib_img/
+measured_*.json
+real_calibration.json
+real_calibration_unverified.json
+*.db
+
+# Generated debug artifacts
+pinky_alignment_preview.png
+*.bag
+*.db3
+*.mcap

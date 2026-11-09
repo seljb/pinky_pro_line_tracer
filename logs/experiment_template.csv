@@ -1,0 +1,1 @@
+trial_id,date_time,platform,ros_version,camera_resolution,lighting,line_width_mm,initial_lateral_mm,initial_yaw_deg,command_speed_limit_m_s,success,final_lateral_mm,final_yaw_deg,elapsed_s,replans,error_type,camera_fps,latency_p95_ms,cpu_pct,rss_mb,notes

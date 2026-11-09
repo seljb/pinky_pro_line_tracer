@@ -1,0 +1,45 @@
+{
+  "calibration_type": "synthetic",
+  "validated": false,
+  "camera_matrix": null,
+  "dist_coeffs": null,
+  "homography_img_to_ground": [
+    [
+      0,
+      -0.001,
+      0.48
+    ],
+    [
+      -0.001,
+      0,
+      0.32
+    ],
+    [
+      0,
+      0,
+      1
+    ]
+  ],
+  "floor_roi_pixels": [
+    [
+      2,
+      2
+    ],
+    [
+      638,
+      2
+    ],
+    [
+      638,
+      478
+    ],
+    [
+      2,
+      478
+    ]
+  ],
+  "image_width": 640,
+  "image_height": 480,
+  "ground_rmse_m": 0,
+  "notes": "SYNTHETIC camera model for offline tests only, NEVER real motion."
+}
