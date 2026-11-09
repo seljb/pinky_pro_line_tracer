@@ -2,11 +2,11 @@
 required.
 """
 
-from pathlib import Path
 import argparse
 import cv2
 import numpy as np
-from .vision import Calibration, LineDetector
+from pinky_line_alignment.resource_paths import calibration_file
+from pinky_line_alignment.vision import Calibration, LineDetector
 
 
 def synthetic_image(offset_m: float = 0.09, slope: float = 0.18):
@@ -36,10 +36,7 @@ def main():
     parser.add_argument("--offset-m", type=float, default=0.09)
     parser.add_argument("--slope", type=float, default=0.18)
     args = parser.parse_args()
-    cal = Calibration.load(
-        Path(__file__).resolve().parent.parent
-        / "config/synthetic_calibration.json"
-    )
+    cal = Calibration.load(calibration_file("synthetic_calibration.json"))
     det = LineDetector(cal)
     img = synthetic_image(args.offset_m, args.slope)
     estimate = det.detect(img)
