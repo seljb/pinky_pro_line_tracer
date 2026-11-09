@@ -33,7 +33,7 @@ ros2 run pinky_line_alignment camera_node --ros-args -p source:=pinky
 # USB 장비일 때는 위 명령 대신 다음 명령을 사용한다.
 # ros2 run pinky_line_alignment camera_node --ros-args -p source:=usb -p device_index:=0
 ```
-Jazzy와 workspace를 source한 터미널에서 실행합니다. 종료는 Ctrl+C입니다. 생성자 중간 실패에 대한 자원 정리는 아직 별도 보강 대상입니다.
+Jazzy와 workspace를 source한 터미널에서 실행합니다. 종료는 Ctrl+C입니다. 새 영상 검증 브랜치에서는 시작·타이머 생성 실패와 반복 종료의 자원 정리를 모의 객체로 검사했습니다. 실제 카메라 호환성 검증은 별도입니다.
 
 오프라인 확인은 `bash scripts/verify_offline.sh`로 실행합니다. 기존 기준은 16개 시험 통과와 좌·우 합성 시나리오 READY 도달입니다. ROS 노드와 실제 장비 연동은 이 검사에 포함되지 않습니다.
 

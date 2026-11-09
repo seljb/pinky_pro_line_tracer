@@ -4,6 +4,7 @@
 
 ## 목차
 
+- [새 개발 브랜치에서 시작](#새-개발-브랜치에서-시작)
 - [파일별 사용설명서](docs/manuals/README.md)
 - [내일 할 일](docs/NEXT_DAY_CHECKLIST_KO.md)
 - [Python 규칙 적용 현황](docs/PYTHON_STYLE_KO.md)
@@ -18,6 +19,26 @@
 - [7. 다음 실측 및 한계](#guide-9)
 - [8. 참고 GitHub / 라이선스](#guide-10)
 - [9. 설치 전에 확인할 다음 실험](#guide-11)
+
+## 새 개발 브랜치에서 시작
+
+**`feat/video-validation`은 기존 `feat/line-alignment`와 분리한 영상·명령 검증 브랜치입니다.** 실제 로봇 없이 저장 영상을 비교하고 합성 정렬·정지 조건을 시험합니다. 기존 브랜치와 main은 변경하지 않습니다.
+
+- [새 기능 사용법과 결과 해석](docs/VIDEO_VALIDATION_KO.md)
+- [별도 브랜치 받기·개발·통합 절차](docs/BRANCH_WORKFLOW_KO.md)
+- [검증 결과와 실물 미완료 항목](docs/DEVELOPMENT_STATUS_KO.md)
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+python scripts/make_synthetic_video.py --output /tmp/pinky-input.avi
+python -m pinky_line_alignment.video_replay \
+  --input /tmp/pinky-input.avi --output-dir /tmp/pinky-replay \
+  --methods fixed otsu adaptive --save-video
+python -m pinky_line_alignment.validation_run --output-dir /tmp/pinky-commands
+```
+
+저장소 루트의 Python 3.12 가상환경에서 실행합니다. 출력은 새 경로를 사용하며, 재생 결과의 픽셀 오차를 실측 거리나 모터 명령으로 해석하지 않습니다. 합성 검증은 별도 가상 보정 모델의 검출→제어→요청 선택→이상적인 이동을 검사합니다.
 
 > **현재 단계:** 소스코드 + 오프라인 테스트. Pinky Pro 실물 검증 **미완료**. 배포용 안전 제어기가 아니다.
 

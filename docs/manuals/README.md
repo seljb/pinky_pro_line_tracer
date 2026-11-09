@@ -1,6 +1,6 @@
 # 파일별 사용설명서
 
-**원본 29개와 새 안내·설정 4개 각각의 역할·사용법·입출력·주의사항을 안내합니다.** 실행 전에 루트 안내와 내일 체크리스트를 먼저 읽으세요.
+**프로젝트 파일 각각의 역할·사용법·입출력·주의사항을 안내합니다.** 실행 전에 루트 안내와 내일 체크리스트를 먼저 읽으세요.
 
 ## 목차
 
@@ -10,6 +10,8 @@
 
 ## 처음 읽을 문서
 
+- [새 영상·명령 검증 안내](../VIDEO_VALIDATION_KO.md)
+- [새 브랜치 받기](../BRANCH_WORKFLOW_KO.md)
 - [프로젝트 시작 안내](../../README.md)
 - [2026-11-11 노트북 작업 목록](../NEXT_DAY_CHECKLIST_KO.md)
 - [Python 규칙 적용 범위](../PYTHON_STYLE_KO.md)
@@ -51,6 +53,25 @@
 | [`requirements-dev.txt`](files/requirements-dev.txt/README.md) | 오프라인 검증에 사용한 직접 의존성 버전을 고정합니다. |
 | [`docs/NEXT_DAY_CHECKLIST_KO.md`](files/docs/NEXT_DAY_CHECKLIST_KO.md/README.md) | 11월 11일 노트북에서 할 일을 순서와 완료 기준으로 안내합니다. |
 | [`docs/PYTHON_STYLE_KO.md`](files/docs/PYTHON_STYLE_KO.md/README.md) | 사용자가 제공한 Python 규칙의 적용 범위와 미완료 항목을 기록합니다. |
+| [`pinky_line_alignment/observation.py`](files/pinky_line_alignment/observation.py/README.md) | 픽셀 공간에서 검은 테이프 후보를 관찰하고 모호한 경로를 거부합니다. |
+| [`pinky_line_alignment/video_replay.py`](files/pinky_line_alignment/video_replay.py/README.md) | 저장 사진·동영상을 같은 조건으로 재생해 검출 결과를 비교합니다. |
+| [`pinky_line_alignment/command_gate.py`](files/pinky_line_alignment/command_gate.py/README.md) | 소프트웨어 속도 요청의 소유권·유효시간·정지 조건을 선택합니다. |
+| [`pinky_line_alignment/validation_run.py`](files/pinky_line_alignment/validation_run.py/README.md) | 합성 영상부터 정렬 명령과 이상적인 이동까지 폐루프를 검증합니다. |
+| [`pinky_line_alignment/resource_paths.py`](files/pinky_line_alignment/resource_paths.py/README.md) | 소스와 설치 환경에서 패키지 보정 JSON의 실제 위치를 찾습니다. |
+| [`scripts/make_synthetic_video.py`](files/scripts/make_synthetic_video.py/README.md) | 재생 도구 점검용 합성 AVI와 장면 종류 CSV를 만듭니다. |
+| [`config/video_observation_example.json`](files/config/video_observation_example.json/README.md) | 영상 관찰 옵션의 JSON 형식과 개발용 기본값을 보여줍니다. |
+| [`.github/workflows/offline-validation.yml`](files/.github/workflows/offline-validation.yml/README.md) | PR과 기능/수정 브랜치 push에서 오프라인 검사를 실행하도록 정의합니다. |
+| [`docs/VIDEO_VALIDATION_KO.md`](files/docs/VIDEO_VALIDATION_KO.md/README.md) | 재생·합성 명령 검증의 전체 실행 순서와 결과 해석을 안내합니다. |
+| [`docs/BRANCH_WORKFLOW_KO.md`](files/docs/BRANCH_WORKFLOW_KO.md/README.md) | 기존 브랜치를 보존하면서 기능 브랜치를 통합하는 방법을 안내합니다. |
+| [`docs/DEVELOPMENT_STATUS_KO.md`](files/docs/DEVELOPMENT_STATUS_KO.md/README.md) | 검증된 개발 기능과 실물 미검증·후속 과제를 기록합니다. |
+| [`tests/test_observation.py`](files/tests/test_observation.py/README.md) | 분할·ROI·연결성·양측 대비·모호함·시각 역행의 영상 관찰 경계를 검사합니다. |
+| [`tests/test_video_replay.py`](files/tests/test_video_replay.py/README.md) | 실제 생성 파일로 재생·CSV·요약·프레임 제한·저장 실패를 검사합니다. |
+| [`tests/test_command_gate.py`](files/tests/test_command_gate.py/README.md) | 활성화·소유권·정지 래치·유효시간·잘못된 시각을 검사합니다. |
+| [`tests/test_validation_run.py`](files/tests/test_validation_run.py/README.md) | 실제 합성 검출·제어·선택·운동학과 출력 CSV의 결과를 검사합니다. |
+| [`tests/test_camera_lifecycle.py`](files/tests/test_camera_lifecycle.py/README.md) | 모의 ROS와 카메라로 초기화 실패·자원 정리 계약을 검사합니다. |
+| [`tests/test_control_inputs.py`](files/tests/test_control_inputs.py/README.md) | 중복 프레임·잘못된 제어 시각·누락 입력의 정지 요청을 검사합니다. |
+| [`tests/test_resource_paths.py`](files/tests/test_resource_paths.py/README.md) | 패키지 보정 파일 찾기와 경로 입력 거부를 검사합니다. |
+| [`tests/test_simulation_inputs.py`](files/tests/test_simulation_inputs.py/README.md) | 0·음수·비유한·빈 시뮬레이션 시간 예산을 거부하는지 검사합니다. |
 
 ## 새 문서와 설정
 
