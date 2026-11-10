@@ -1,0 +1,29 @@
+{
+  "calibration_type": "real",
+  "validated": false,
+  "camera_matrix": null,
+  "dist_coeffs": null,
+  "homography_img_to_ground": null,
+  "floor_roi_pixels": [
+    [
+      10,
+      10
+    ],
+    [
+      630,
+      10
+    ],
+    [
+      630,
+      470
+    ],
+    [
+      10,
+      470
+    ]
+  ],
+  "image_width": 640,
+  "image_height": 480,
+  "ground_rmse_m": null,
+  "notes": "REPLACE WITH MEASUREMENTS. Not suitable for motion."
+}
